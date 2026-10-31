@@ -1,0 +1,27 @@
+FROM golang:1.26.2
+
+WORKDIR /app
+
+RUN apt-get update && apt-get install -y vim kmod nbd-server
+RUN mkdir /export && touch /export/blkdev && dd if=/dev/zero of=/export/blkdev bs=1k count=500
+
+COPY conf/nbd.conf /etc/nbd-server/config
+COPY conf/nbd_allow.conf /etc/nbd-server/allow
+
+COPY src/ ./
+RUN go mod download
+RUN --mount=type=cache,target=/root/.cache/go-build \
+  --mount=type=cache,target=/go/pkg/mod \
+  CGO_ENABLED=0 GOOS=linux go build -o /usr/local/bin/nbd-app
+
+EXPOSE 2000
+
+CMD ["/usr/local/bin/nbd-app"]
+
+
+
+
+
+
+
+

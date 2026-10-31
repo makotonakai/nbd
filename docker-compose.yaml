@@ -1,0 +1,22 @@
+services:
+  client:
+    build: 
+      context: .
+      dockerfile: Dockerfile.client
+    privileged: true
+    volumes:
+      - /lib/modules:/lib/modules
+      - /dev:/dev
+    networks:
+      - network
+  server:
+    build: 
+      context: .
+      dockerfile: Dockerfile.server
+    ports:
+      - "2000:2000"
+    networks:
+      - network
+
+networks:
+  network:
