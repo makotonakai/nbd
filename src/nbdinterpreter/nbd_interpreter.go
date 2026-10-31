@@ -113,8 +113,9 @@ func (ni *NBDInterpreter) SendExportResponse() error {
     binary.BigEndian.PutUint64(response[0:8],
         uint64(constants.DefaultDeviceSize))
 
-    // Transmission flags: 1.
-    binary.BigEndian.PutUint16(response[8:10], 1)
+    // Advertise flush support so the client sends NBD_CMD_FLUSH.
+    binary.BigEndian.PutUint16(response[8:10],
+        constants.TransmissionFlagHasFlags|constants.TransmissionFlagSendFlush)
 
     // Bytes 10 through 133 remain zero.
     return writeFull(ni.Cxn, response)

@@ -81,6 +81,21 @@ func HandleConnection(cxn net.Conn, device *os.File) {
                 return
             }
 
+        case bytes.Equal(req.Kind, constants.RequestKindFlush):
+            fmt.Println("Flushing device")
+
+            if err := device.Sync(); err != nil {
+                fmt.Println("Flush failed:", err)
+                return
+            }
+
+            if err := ni.SendTransmissionResponse(
+                req.Handle, nil,
+            ); err != nil {
+                fmt.Println("Flush response failed:", err)
+                return
+            }
+
         case bytes.Equal(req.Kind, constants.RequestKindClose):
             return
 

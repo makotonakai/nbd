@@ -4,6 +4,11 @@ const DefaultDeviceSize = 1 << 19 // 512 KiB
 
 const DefaultDevicePath = "/export/blkdev"
 
+const (
+    TransmissionFlagHasFlags  = 1 << 0
+    TransmissionFlagSendFlush = 1 << 2
+)
+
 var (
     MinimalClientFlags   = []byte{0x00, 0x00, 0x00, 0x01}
     OptionRequestPrefix  = []byte("IHAVEOPT")
@@ -14,5 +19,6 @@ var (
     RequestKindRead      = []byte{0x00, 0x00}
     RequestKindWrite     = []byte{0x00, 0x01}
     RequestKindClose     = []byte{0x00, 0x02}
+    RequestKindFlush     = []byte{0x00, 0x03}
     ResponsePrefix       = []byte{0x67, 0x44, 0x66, 0x98}
 )
