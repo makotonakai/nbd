@@ -1,6 +1,6 @@
 FROM debian:trixie
 
-RUN apt-get update && apt-get install -y nbd-client
+RUN apt-get update && apt-get install -y kmod nbd-client e2fsprogs tree
 
 CMD [ "sleep", "infinity" ]
 
