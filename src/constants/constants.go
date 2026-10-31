@@ -2,6 +2,8 @@ package constants
 
 const DefaultDeviceSize = 1 << 19 // 512 KiB
 
+const DefaultDevicePath = "/export/blkdev"
+
 var (
     MinimalClientFlags   = []byte{0x00, 0x00, 0x00, 0x01}
     OptionRequestPrefix  = []byte("IHAVEOPT")

@@ -5,12 +5,13 @@ import (
     "fmt"
     "io"
     "net"
+    "os"
 
     "github.com/makotonakai/nbd/constants"
     "github.com/makotonakai/nbd/nbdinterpreter"
 )
 
-func HandleConnection(cxn net.Conn, state []byte) {
+func HandleConnection(cxn net.Conn, device *os.File) {
     defer cxn.Close()
 
     ni, err := nbdinterpreter.NewNBDInterpreter(cxn)
@@ -52,8 +53,14 @@ func HandleConnection(cxn net.Conn, state []byte) {
         case bytes.Equal(req.Kind, constants.RequestKindRead):
             fmt.Printf("Reading bytes %d - %d\n", start, end)
 
+            data := make([]byte, req.Length)
+            if _, err := device.ReadAt(data, int64(req.Offset)); err != nil {
+                fmt.Println("Read failed:", err)
+                return
+            }
+
             if err := ni.SendTransmissionResponse(
-                req.Handle, state[start:end],
+                req.Handle, data,
             ); err != nil {
                 fmt.Println("Read response failed:", err)
                 return
@@ -62,7 +69,10 @@ func HandleConnection(cxn net.Conn, state []byte) {
         case bytes.Equal(req.Kind, constants.RequestKindWrite):
             fmt.Printf("Writing bytes %d - %d\n", start, end)
 
-            copy(state[start:end], req.Data)
+            if _, err := device.WriteAt(req.Data, int64(req.Offset)); err != nil {
+                fmt.Println("Write failed:", err)
+                return
+            }
 
             if err := ni.SendTransmissionResponse(
                 req.Handle, nil,
@@ -89,8 +99,19 @@ func main() {
     }
     defer listener.Close()
 
-    // One fixed-size in-memory device.
-    state := make([]byte, constants.DefaultDeviceSize)
+    // One fixed-size file-backed device.
+    device, err := os.OpenFile(constants.DefaultDevicePath, os.O_RDWR|os.O_CREATE, 0644)
+    if err != nil {
+        fmt.Println("Device open error:", err)
+        return
+    }
+    defer device.Close()
+
+    // Grow or shrink the file to the advertised export size.
+    if err := device.Truncate(constants.DefaultDeviceSize); err != nil {
+        fmt.Println("Device resize error:", err)
+        return
+    }
 
     fmt.Println("NBD server starting...")
 
@@ -101,6 +122,6 @@ func main() {
             continue
         }
 
-        go HandleConnection(conn, state)
+        go HandleConnection(conn, device)
     }
 }
