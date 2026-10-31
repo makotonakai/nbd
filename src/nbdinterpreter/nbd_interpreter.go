@@ -81,10 +81,18 @@ func (ni *NBDInterpreter) GetClientOptions() ([]types.Option, error) {
             return options, nil
         }
 
-        options = append(options, types.Option{
+        option := types.Option{
             Kind: kind,
             Data: data,
-        })
+        }
+
+        // Fixed newstyle clients wait for a reply to each option
+        // before sending the next one, so reply immediately.
+        if err := ni.SendUnsupportedOption(option); err != nil {
+            return nil, err
+        }
+
+        options = append(options, option)
     }
 }
 

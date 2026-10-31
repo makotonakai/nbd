@@ -26,11 +26,7 @@ func HandleConnection(cxn net.Conn, state []byte) {
     }
 
     for _, opt := range options {
-        fmt.Printf("Ignoring client option: %x\n", opt.Kind)
-        if err := ni.SendUnsupportedOption(opt); err != nil {
-            fmt.Println("Option response failed:", err)
-            return
-        }
+        fmt.Printf("Ignored client option: %x\n", opt.Kind)
     }
 
     if err := ni.SendExportResponse(); err != nil {
